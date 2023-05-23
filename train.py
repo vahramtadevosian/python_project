@@ -3,7 +3,7 @@ import pytorch_lightning as pl
 
 from lightly.data import LightlyDataset, SimCLRCollateFunction
 
-from utils.helper_functions import yaml_loader, create_transforms
+from utils.helper_functions import yaml_loader, create_train_transforms
 from tools.simple_clr import SimCLRModel
 
 
@@ -13,7 +13,7 @@ collate_fn = SimCLRCollateFunction(input_size=general_dict['input_size'], vf_pro
 
 dataset_train_simclr = LightlyDataset(
     input_dir=general_dict['path_to_train_data'],
-    transform=create_transforms(resolution=general_dict['resolution'])
+    transform=create_train_transforms(resolution=general_dict['resolution'])
 )
 
 dataloader_train_simclr = torch.utils.data.DataLoader(

@@ -1,26 +1,19 @@
 import torch
 import torchvision
 
-from lightly.data import LightlyDataset, collate
+from lightly.data import LightlyDataset
 
-from utils.helper_functions import yaml_loader, generate_embeddings, plot_knn_examples
+from utils.helper_functions import yaml_loader, generate_embeddings, plot_knn_examples, create_test_transforms
+
 from tools.simple_clr import SimCLRModel
 
 
 general_dict = yaml_loader('configs/general.yaml')
 
-test_transforms = torchvision.transforms.Compose(
-    [
-        torchvision.transforms.Resize((general_dict['input_size'], general_dict['input_size'])),
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(
-            mean=collate.imagenet_normalize["mean"],
-            std=collate.imagenet_normalize["std"],
-        ),
-    ]
+dataset_test = LightlyDataset(
+    input_dir=general_dict['path_to_test_data'],
+    transform=create_test_transforms(resolution=general_dict['resolution'])
 )
-
-dataset_test = LightlyDataset(input_dir=general_dict['path_to_test_data'], transform=test_transforms)
 
 dataloader_test = torch.utils.data.DataLoader(
     dataset_test,

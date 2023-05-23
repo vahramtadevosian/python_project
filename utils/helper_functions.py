@@ -9,7 +9,7 @@ from sklearn.preprocessing import normalize
 from sklearn.neighbors import NearestNeighbors
 
 from torchvision import transforms
-
+from lightly.data import collate
 
 def yaml_loader(yaml_file):
     with open(yaml_file) as f:
@@ -57,9 +57,9 @@ def create_train_transforms(
     cj_contrast: float = 0.4,
     cj_saturation: float = 0.4,
     cj_hue: float = 0.1,
-    blur_kernel_size: int =5
-    norm_mean: list = [0.485, 0.456, 0.406],
-    norm_std: list = [0.229, 0.224, 0.225],
+    blur_kernel_size: int = 5,
+    norm_mean: list = collate.imagenet_normalize['mean'],
+    norm_std: list = collate.imagenet_normalize['std'],
 ) -> transforms.Compose:
     """
     Returns image transforms for training
@@ -84,6 +84,26 @@ def create_train_transforms(
         data_transforms.append(transforms.GaussianBlur(kernel_size=blur_kernel_size))
 
     data_transforms.append(transforms.ToTensor())
+
+    if normalize:
+        data_transforms.append(transforms.Normalize(mean=norm_mean, std=norm_std))
+
+    return transforms.Compose(data_transforms)
+
+
+def create_test_transforms(
+    resolution: int,
+    normalize: bool = True,
+    norm_mean: list = collate.imagenet_normalize['mean'],
+    norm_std: list = collate.imagenet_normalize['std'],
+) -> transforms.Compose:
+    """
+    Returns image transforms for testing
+    """
+    data_transforms = [
+        transforms.Resize((resolution, resolution)),
+        transforms.ToTensor()
+    ]
 
     if normalize:
         data_transforms.append(transforms.Normalize(mean=norm_mean, std=norm_std))

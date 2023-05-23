@@ -1,0 +1,5 @@
+data/images/
+data/train/
+data/test/
+lightning_logs/
+plt_figures/

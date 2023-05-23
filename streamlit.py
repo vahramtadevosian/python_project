@@ -26,5 +26,5 @@ dataloader_test = torch.utils.data.DataLoader(
 if __name__ == '__main__':
     model = SimCLRModel.load_from_checkpoint(general_dict['checkpoint_path'])
     model.eval()
-    embeddings, filenames = generate_embeddings(model, dataloader_test)
-    plot_knn_examples(embeddings, filenames, general_dict['path_to_test_data'])
+    embeddings, filenames = generate_embeddings(model.cpu(), dataloader_test)
+    plot_knn_examples(embeddings, filenames, general_dict['path_to_test_data'], save_path='plt_figures')

@@ -9,7 +9,7 @@ from tools.simple_clr import SimCLRModel
 
 general_dict = yaml_loader('configs/general.yaml')
 
-collate_fn = SimCLRCollateFunction(input_size=general_dict['input_size'], vf_prob=0.5, rr_prob=0.5)
+collate_fn = SimCLRCollateFunction(input_size=general_dict['resolution'], vf_prob=0.5, rr_prob=0.5)
 
 dataset_train_simclr = LightlyDataset(
     input_dir=general_dict['path_to_train_data'],
@@ -27,5 +27,9 @@ dataloader_train_simclr = torch.utils.data.DataLoader(
 
 if __name__ == '__main__':
     model = SimCLRModel()
-    trainer = pl.Trainer(max_epochs=general_dict['max_epochs'], devices=1)
+    trainer = pl.Trainer(
+        max_epochs=general_dict['max_epochs'],
+        log_every_n_steps=general_dict['log_steps'],
+        devices=1
+    )
     trainer.fit(model, dataloader_train_simclr)

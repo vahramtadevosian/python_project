@@ -1,7 +1,8 @@
 path_to_train_data: "data/train"
 path_to_test_data: "data/test"
-checkpoint_path: "lightning_logs/version_0/checkpoints/epoch=9-step=100.ckpt"
+checkpoint_path: "lightning_logs/version_0/checkpoints/epoch=9-step=90.ckpt"
 
+log_steps: 10
 num_workers: 8
 batch_size: 4
 seed: 1

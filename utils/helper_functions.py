@@ -83,10 +83,10 @@ def create_train_transforms(
     if blur:
         data_transforms.append(transforms.GaussianBlur(kernel_size=blur_kernel_size))
 
-    data_transforms.append(transforms.ToTensor())
-
     if normalize:
+        data_transforms.append(transforms.ToTensor())
         data_transforms.append(transforms.Normalize(mean=norm_mean, std=norm_std))
+    data_transforms.append(transforms.ToPILImage())
 
     return transforms.Compose(data_transforms)
 
@@ -102,16 +102,17 @@ def create_test_transforms(
     """
     data_transforms = [
         transforms.Resize((resolution, resolution)),
-        transforms.ToTensor()
     ]
 
     if normalize:
+        data_transforms.append(transforms.ToTensor())
         data_transforms.append(transforms.Normalize(mean=norm_mean, std=norm_std))
+    # data_transforms.append(transforms.ToPILImage())
 
     return transforms.Compose(data_transforms)
 
 
-def plot_knn_examples(embeddings, filenames, path_to_test_data, n_neighbors=3, num_examples=6):
+def plot_knn_examples(embeddings, filenames, path_to_test_data, n_neighbors=3, num_examples=6, save_path=None):
     """
     Plots multiple rows of random images with their nearest neighbors
     """
@@ -128,3 +129,9 @@ def plot_knn_examples(embeddings, filenames, path_to_test_data, n_neighbors=3, n
             plt.imshow(get_image_as_np_array(fname))
             ax.set_title(f"d={distances[idx][plot_x_offset]:.3f}")
             plt.axis("off")
+
+    if save_path:
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        plt.savefig(os.path.join(save_path, 'examples.png'))
+

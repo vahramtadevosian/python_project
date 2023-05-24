@@ -16,6 +16,9 @@ dataset_train_simclr = LightlyDataset(
     transform=create_train_transforms(resolution=general_dict['resolution'])
 )
 
+checkpoint_callback = pl.callbacks.ModelCheckpoint(dirpath=general_dict['path_to_checkpoint'],
+                                                   save_top_k=general_dict['save_top_k'], monitor="train_loss_ssl")
+
 dataloader_train_simclr = torch.utils.data.DataLoader(
     dataset_train_simclr,
     batch_size=general_dict['batch_size'],
@@ -30,6 +33,7 @@ if __name__ == '__main__':
     trainer = pl.Trainer(
         max_epochs=general_dict['max_epochs'],
         log_every_n_steps=general_dict['log_steps'],
-        devices=1
+        devices=1,
+        callbacks=[checkpoint_callback]
     )
     trainer.fit(model, dataloader_train_simclr)

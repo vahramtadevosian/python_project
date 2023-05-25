@@ -130,8 +130,8 @@ def plot_knn_examples(embeddings, filenames, path_to_test_data, n_neighbors=3, n
             ax.set_title(f"d={distances[idx][plot_x_offset]:.3f}")
             plt.axis("off")
 
-    if save_path:
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-        plt.savefig(os.path.join(save_path, 'examples.png'))
+        if save_path:
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+            plt.savefig(os.path.join(save_path, f'examples_{idx}.png'))
 

@@ -113,28 +113,7 @@ def create_test_transforms(
     return transforms.Compose(data_transforms)
 
 
-# def plot_knn_examples(embeddings, filenames, path_to_test_data, n_neighbors=3, num_examples=6, save_path=None):
-#     """
-#     Plots multiple rows of random images with their nearest neighbors
-#     """
-#
-#     nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)
-#     distances, indices = nbrs.kneighbors(embeddings)
-#     samples_idx = np.random.choice(len(indices), size=num_examples, replace=False)
-#
-#     for idx in samples_idx:
-#         fig = plt.figure()
-#         for plot_x_offset, neighbor_idx in enumerate(indices[idx]):
-#             ax = fig.add_subplot(1, len(indices[idx]), plot_x_offset + 1)
-#             fname = os.path.join(path_to_test_data, filenames[neighbor_idx])
-#             plt.imshow(get_image_as_np_array(fname))
-#             ax.set_title(f"d={distances[idx][plot_x_offset]:.3f}")
-#             plt.axis("off")
-#
-#         if save_path:
-#             if not os.path.exists(save_path):
-#                 os.makedirs(save_path)
-#             plt.savefig(os.path.join(save_path, f'examples_{idx}.png'))
+
 
 def plot_knn_examples(embeddings, filenames, path_to_test_data, n_neighbors=3, num_examples=6, save_path=None):
     """

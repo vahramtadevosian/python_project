@@ -4,3 +4,5 @@ data/test/
 lightning_logs/
 plt_figures/
 .idea/
+logs/
+venv/

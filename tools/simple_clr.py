@@ -1,4 +1,5 @@
-import torch
+from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingLR
+from torch.optim import SGD
 import torchvision
 import torch.nn as nn
 import pytorch_lightning as pl
@@ -33,8 +34,7 @@ class SimCLRModel(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optim = torch.optim.SGD(
-            self.parameters(), lr=6e-2, momentum=0.9, weight_decay=5e-4
-        )
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optim, 10)
-        return [optim], [scheduler]
+        optim = SGD(self.parameters(), lr=6e-2, momentum=0.9, weight_decay=5e-4)
+        scheduler = ReduceLROnPlateau(optim, mode='min', patience=5)
+        # scheduler = CosineAnnealingLR(optim, 10)  # doesn't work with pl
+        return {"optimizer": optim, "lr_scheduler": scheduler, "monitor": "train_loss_ssl"}

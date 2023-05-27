@@ -1,8 +1,9 @@
 import streamlit as st
-import splitfolders
+# import splitfolders
 import mediapipe as mp
 import torch
 import argparse
+from tools.dataset import LightlyDatasetWithMasks
 from lightly.data import LightlyDataset
 from utils.helper_functions import yaml_loader, generate_embeddings, plot_knn_examples, create_test_transforms, \
     plot_knn_examples_for_uploaded_image
@@ -49,10 +50,16 @@ elif app_mode == 'Run Image':
 
     # Load the test dataset
     test_transforms = create_test_transforms(resolution=128)
-    dataset_test = LightlyDataset(
+
+    dataset_test = LightlyDatasetWithMasks(
         input_dir=config['path_to_test_data'],
         transform=test_transforms
     )
+    # Uncomment to use dataset without segmentation masks
+    # dataset_test = LightlyDataset(
+    #     input_dir=config['path_to_test_data'],
+    #     transform=test_transforms
+    # )
 
     dataloader_test = torch.utils.data.DataLoader(
         dataset_test,

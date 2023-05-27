@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 import argparse
 import pytorch_lightning as pl
 
+from tools.dataset import LightlyDatasetWithMasks
 from lightly.data import LightlyDataset, SimCLRCollateFunction
 from pytorch_lightning.loggers import TensorBoardLogger
 from utils.helper_functions import yaml_loader, create_train_transforms
@@ -18,16 +19,23 @@ parser.add_argument('--batch_size', type=int, help='Batch size', default=128)
 parser.add_argument('--num_workers', type=int, help='Number of workers', default=8)
 parser.add_argument('--max_epochs', type=int, help='Number of epochs to train', default=100)
 parser.add_argument('--log_steps', type=int, help='Length of logging interval', default=5)
+parser.add_argument('--use_masks', type=bool, help='Whether to use segmentation masks', default=True)
 args = parser.parse_args()
 
 general_dict = yaml_loader('configs/general.yaml')
 
 collate_fn = SimCLRCollateFunction(input_size=args.input_size, vf_prob=0.5, rr_prob=0.5)
 
-dataset_train_simclr = LightlyDataset(
-    input_dir=general_dict['path_to_train_data'],
-    transform=create_train_transforms(resolution=args.input_size)
-)
+if args.use_masks:
+    dataset_train_simclr = LightlyDatasetWithMasks(
+        input_dir=general_dict['path_to_train_data'],
+        transform=create_train_transforms(resolution=args.input_size)
+    )
+else:
+    dataset_train_simclr = LightlyDataset(
+        input_dir=general_dict['path_to_train_data'],
+        transform=create_train_transforms(resolution=args.input_size)
+    )
 
 checkpoint_callback = ModelCheckpoint(
     dirpath=general_dict['path_to_checkpoint'],

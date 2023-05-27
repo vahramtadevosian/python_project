@@ -6,3 +6,8 @@ matplotlib==3.7.1
 Pillow==9.5.0
 scikit-learn==1.2.2
 pytorch-lightning==1.7.2
+streamlit==1.22.0
+mediapipe==0.10.0
+opencv-python==4.7.0.72
+tensorboard==2.13.0
+tensorboardX==2.6

@@ -1,8 +1,9 @@
-full_data_path: /Users/mariam/Desktop
-path_to_train_data: data/train
-path_to_test_data: data/test
+path_to_train_data: "data/train"
+path_to_test_data: "data/test"
+path_to_train_mask: "mask/train"
+path_to_test_mask: "mask/test"
 
-path_to_checkpoint: checkpoints
-checkpoint_path: checkpoints/epoch=74-step=4800.ckpt
+path_to_checkpoint: "checkpoints"
+checkpoint_path: "checkpoints/epoch=74-step=4800.ckpt"
 
-plt_figures: plt_figures
+plt_figures: "plt_figures"

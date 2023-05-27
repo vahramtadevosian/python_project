@@ -7,12 +7,18 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from sklearn.preprocessing import normalize
 from sklearn.neighbors import NearestNeighbors
-
 from torchvision import transforms
 from lightly.data import collate
 
 
 def yaml_loader(yaml_file):
+    """
+    Function to load yaml file.
+
+    :param str yaml_file: path to yaml file
+    :return: Dictionary of parameters
+    :rtype: dict
+    """
     with open(yaml_file) as f:
         yaml_dict = yaml.load(f, Loader=yaml.loader.SafeLoader)
     return yaml_dict
@@ -21,7 +27,12 @@ def yaml_loader(yaml_file):
 def generate_embeddings(model, dataloader):
     """
     Generates representations for all images in the dataloader with
-    the given model
+    the given model.
+
+    :param simple_clr.SimCLRModel model: trained CLR model
+    :param torch.utils.data.DataLoader dataloader: dataloader of images
+    :returns: embeddings of images, filenames of images
+    :rtype: torch.Tensor, str
     """
 
     embeddings = []
@@ -40,30 +51,50 @@ def generate_embeddings(model, dataloader):
 
 def get_image_as_np_array(filename: str):
     """
-    Returns an image as an numpy array
+    Returns an image as a numpy array.
+
+    :param str filename: file name of an image
+    :returns: numpy array of an image
+    :rtype: np.array
     """
     img = Image.open(filename)
     return np.asarray(img)
 
 
 def create_train_transforms(
-        resolution: int,
-        random_flip: bool = True,
-        color_jitter: bool = False,
-        random_rotation: bool = True,
-        normalize: bool = True,
-        blur: bool = False,
-        rot_degree: int = 15,
-        cj_brightness: float = 0.4,
-        cj_contrast: float = 0.4,
-        cj_saturation: float = 0.4,
-        cj_hue: float = 0.1,
-        blur_kernel_size: int = 5,
-        norm_mean: list = collate.imagenet_normalize['mean'],
-        norm_std: list = collate.imagenet_normalize['std'],
-) -> transforms.Compose:
+        resolution,
+        random_flip=True,
+        color_jitter=False,
+        random_rotation=True,
+        normalize=True,
+        blur=False,
+        rot_degree=15,
+        cj_brightness=0.4,
+        cj_contrast=0.4,
+        cj_saturation=0.4,
+        cj_hue=0.1,
+        blur_kernel_size=5,
+        norm_mean=collate.imagenet_normalize['mean'],
+        norm_std=collate.imagenet_normalize['std']):
     """
     Returns image transforms for training
+
+    :param int resolution: size of image
+    :param bool random_flip: whether random flip image or not
+    :param bool color_jitter: whether jitter color of image or not
+    :param bool random_rotation: whether random rotate image or not
+    :param bool normalize: whether normalize image or not
+    :param bool blur: whether blur image or not
+    :param int rot_degree: rotation degree of image
+    :param float cj_brightness: brightness of image
+    :param float cj_contrast: contrast of image
+    :param float cj_saturation: saturation of image
+    :param float cj_hue: hue of image
+    :param int blur_kernel_size: kernel size of blurring
+    :param list norm_mean: list of means
+    :param list norm_std: list of standard deviations
+    :returns: compose of transforms of image
+    :rtype: transforms.Compose
     """
     data_transforms = [transforms.Resize((resolution, resolution))]
 
@@ -93,13 +124,19 @@ def create_train_transforms(
 
 
 def create_test_transforms(
-        resolution: int,
-        normalize: bool = True,
-        norm_mean: list = collate.imagenet_normalize['mean'],
-        norm_std: list = collate.imagenet_normalize['std'],
-) -> transforms.Compose:
+        resolution,
+        normalize=True,
+        norm_mean=collate.imagenet_normalize['mean'],
+        norm_std=collate.imagenet_normalize['std']):
     """
     Returns image transforms for testing
+
+    :param int resolution: size of image
+    :param bool normalize: whether normalize image or not
+    :param list norm_mean: list of means
+    :param list norm_std: list of standard deviations
+    :returns: compose of transforms of image
+    :rtype: transforms.Compose
     """
     data_transforms = [
         transforms.Resize((resolution, resolution)),
@@ -113,13 +150,17 @@ def create_test_transforms(
     return transforms.Compose(data_transforms)
 
 
-
-
 def plot_knn_examples(embeddings, filenames, path_to_test_data, n_neighbors=3, num_examples=6, save_path=None):
     """
-    Plots multiple rows of random images with their nearest neighbors
-    """
+    Plots multiple rows of random images with their nearest neighbors.
 
+    :param np.array embeddings: embeddings of images
+    :param str filenames: file names of images
+    :param str path_to_test_data: path to test data
+    :param int n_neighbors: number of nearest neighbors to plot
+    :param int num_examples: number of examples
+    :param str save_path: path to save image with nearest images
+    """
     nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)
     distances, indices = nbrs.kneighbors(embeddings)
     samples_idx = np.random.choice(len(indices), size=num_examples, replace=False)
@@ -141,9 +182,16 @@ def plot_knn_examples(embeddings, filenames, path_to_test_data, n_neighbors=3, n
 
 def plot_knn_examples_for_uploaded_image(embeddings, filenames, path_to_test_data, query_filename, n_neighbors=3,
                                          save_path=None):
-    '''
+    """
     Plots nearest neighbors of a specific image given its filename
-    '''
+
+    :param np.array embeddings: embeddings of images
+    :param str filenames: file names of images
+    :param str path_to_test_data: path to test data
+    :param int query_filename: specified image file name
+    :param int n_neighbors: number of nearest neighbors to plot
+    :param str save_path: path to save image with nearest images
+    """
     query_idx = filenames.index(query_filename)  # Get the index of the query image
     query_embedding = embeddings[query_idx]  # Get the embedding of the query image
     nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)

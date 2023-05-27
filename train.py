@@ -1,16 +1,16 @@
-import logging
-
 import torch
-from torch.utils.data import DataLoader
 import argparse
 import pytorch_lightning as pl
 
-from tools.dataset import LightlyDatasetWithMasks
+from torch.utils.data import DataLoader
 from lightly.data import LightlyDataset, SimCLRCollateFunction
 from pytorch_lightning.loggers import TensorBoardLogger
-from utils.helper_functions import yaml_loader, create_train_transforms
-from tools.simple_clr import SimCLRModel
 from pytorch_lightning.callbacks import ModelCheckpoint
+
+from utils.helper_functions import yaml_loader, create_train_transforms
+from tools.dataset import LightlyDatasetWithMasks
+from tools.simple_clr import SimCLRModel
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input_size', type=int, help='Input size of image', default=128)

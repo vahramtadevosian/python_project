@@ -53,9 +53,9 @@ python train.py --use_masks
 2. Using streamlit, run:
 ```shell
 streamlit run streamlit_file.py
+```
 3. Change the `App Mode` to `Find Similar Image` in the left corner of the page.
 4. Select the image and check which its nearest neighbors.
-```
 
 ## Related Links
 * [CelebAMask-HQ](https://github.com/switchablenorms/CelebAMask-HQ.git)

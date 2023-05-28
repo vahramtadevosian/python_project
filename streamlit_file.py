@@ -9,7 +9,7 @@ from utils.helper_functions import yaml_loader, \
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input_size', type=int,
-                    help='Input size of image', default=128)
+                    help='Input size of image', default=256)
 parser.add_argument('--batch_size', type=int,
                     help='Batch size', default=128)
 parser.add_argument('--num_workers', type=int,
@@ -44,21 +44,19 @@ if app_mode == "About App":
 elif app_mode == 'Find Similar Image':
     uploaded_image = st.file_uploader("Please upload your image", type=["jpg", "png"])
     if uploaded_image is None:
-        sys.exit()  # TODO retry
+        sys.exit()
 
-    num_neighbors = st.sidebar.slider('Number of nearest neighbors', min_value=1, max_value=10, value=3)
+    num_neighbors = st.sidebar.slider('Number of nearest neighbors', min_value=1, max_value=5, value=3)
     use_masks = st.sidebar.checkbox("Use binary masks")
 
-    query_filename = uploaded_image.name
     input_image = PilImage.open(uploaded_image)
     input_image = input_image.resize((args.input_size, args.input_size))
+    st.image(input_image, caption="Uploaded Image", use_column_width=False)
 
     embeddings, filenames = infer(use_masks, args, **general_dict)
 
-    st.image(input_image, caption="Uploaded Image", use_column_width=False)
-
     # Plot and display the nearest neighbor images
     fig = plot_knn_examples_for_uploaded_image(embeddings, filenames, general_dict['path_to_test_data'],
-                                               query_filename, n_neighbors=num_neighbors,
+                                               uploaded_image.name, n_neighbors=num_neighbors,
                                                save_dir=general_dict['plt_figures'])
     st.pyplot(fig)

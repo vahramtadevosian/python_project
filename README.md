@@ -8,6 +8,8 @@ Team Members:
 - Mariam Gasoyan
 - Vahram Tadevosyan
 
+This project solves the task of Person Identification using a semi-supervised deep learning approach called [SimCLR](https://arxiv.org/abs/2002.05709) (A Simple Framework for Contrastive Learning of Visual Representations). This method makes use of contrastive learning by maximizing agreement between positive pairs (augmented views of the same image) and minimizing agreement between negative pairs (augmented views of different images). The architecture consists of a ResNet-18 backbone, and a projection head. The latter is only used for the training, while the former is trained to learn embeddings of input images, which are supposed to be close in case of similar images and different otherwise.
+
 ## Setup
 
 1. Clone this repository and enter:
@@ -45,10 +47,10 @@ python train.py --input_size RES --save_top_k K --batch_size BATCH_SIZE --num_wo
 python train.py --use_masks
 ```
 
-
-
 ## Inference with Streamlit
 
+1. To test the trained model make sure that the best checkpoint `best_checkpoint.ckpt` is put in the `./checkpoints` directory.
+2. Using streamlit, run:
 ```shell
 streamlit run streamlit_file.py
 ```

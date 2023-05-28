@@ -1,14 +1,22 @@
-import os
-import yaml
-import torch
-import numpy as np
-import matplotlib.pyplot as plt
+import argparse
+from pathlib import Path
+from typing import Union
 
+import matplotlib.pyplot as plt
+import numpy as np
+import streamlit as st
+import torch
+import yaml
 from PIL import Image
-from sklearn.preprocessing import normalize
+from lightly.data import LightlyDataset, collate
+from loguru import logger
 from sklearn.neighbors import NearestNeighbors
+from sklearn.preprocessing import normalize
+from torch.utils.data import DataLoader
 from torchvision import transforms
-from lightly.data import collate
+
+from tools.dataset import LightlyDatasetWithMasks
+from tools.simple_clr import SimCLRModel
 
 
 def yaml_loader(yaml_file):
@@ -49,7 +57,7 @@ def generate_embeddings(model, dataloader):
     return embeddings, filenames
 
 
-def get_image_as_np_array(filename: str):
+def get_image_as_np_array(filename: Union[str, Path]):
     """
     Returns an image as a numpy array.
 
@@ -66,7 +74,7 @@ def create_train_transforms(
         random_flip=True,
         color_jitter=False,
         random_rotation=True,
-        normalize=True,
+        normalize_image=True,
         blur=False,
         rot_degree=15,
         cj_brightness=0.4,
@@ -83,7 +91,7 @@ def create_train_transforms(
     :param bool random_flip: whether random flip image or not
     :param bool color_jitter: whether jitter color of image or not
     :param bool random_rotation: whether random rotate image or not
-    :param bool normalize: whether normalize image or not
+    :param bool normalize_image: whether normalize image or not
     :param bool blur: whether blur image or not
     :param int rot_degree: rotation degree of image
     :param float cj_brightness: brightness of image
@@ -115,7 +123,7 @@ def create_train_transforms(
     if blur:
         data_transforms.append(transforms.GaussianBlur(kernel_size=blur_kernel_size))
 
-    if normalize:
+    if normalize_image:
         data_transforms.append(transforms.ToTensor())
         data_transforms.append(transforms.Normalize(mean=norm_mean, std=norm_std))
     data_transforms.append(transforms.ToPILImage())
@@ -125,14 +133,14 @@ def create_train_transforms(
 
 def create_test_transforms(
         resolution,
-        normalize=True,
+        normalize_image=True,
         norm_mean=collate.imagenet_normalize['mean'],
         norm_std=collate.imagenet_normalize['std']):
     """
     Returns image transforms for testing
 
     :param int resolution: size of image
-    :param bool normalize: whether normalize image or not
+    :param bool normalize_image: whether normalize image or not
     :param list norm_mean: list of means
     :param list norm_std: list of standard deviations
     :returns: compose of transforms of image
@@ -142,7 +150,7 @@ def create_test_transforms(
         transforms.Resize((resolution, resolution)),
     ]
 
-    if normalize:
+    if normalize_image:
         data_transforms.append(transforms.ToTensor())
         data_transforms.append(transforms.Normalize(mean=norm_mean, std=norm_std))
     # data_transforms.append(transforms.ToPILImage())
@@ -150,38 +158,9 @@ def create_test_transforms(
     return transforms.Compose(data_transforms)
 
 
-def plot_knn_examples(embeddings, filenames, path_to_test_data, n_neighbors=3, num_examples=6, save_path=None):
-    """
-    Plots multiple rows of random images with their nearest neighbors.
-
-    :param np.array embeddings: embeddings of images
-    :param str filenames: file names of images
-    :param str path_to_test_data: path to test data
-    :param int n_neighbors: number of nearest neighbors to plot
-    :param int num_examples: number of examples
-    :param str save_path: path to save image with nearest images
-    """
-    nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)
-    distances, indices = nbrs.kneighbors(embeddings)
-    samples_idx = np.random.choice(len(indices), size=num_examples, replace=False)
-
-    for idx in samples_idx:
-        fig = plt.figure()
-        for plot_x_offset, neighbor_idx in enumerate(indices[idx]):
-            ax = fig.add_subplot(1, len(indices[idx]), plot_x_offset + 1)
-            fname = os.path.join(path_to_test_data, filenames[neighbor_idx])
-            plt.imshow(get_image_as_np_array(fname))
-            ax.set_title(f"d={distances[idx][plot_x_offset]:.3f}")
-            plt.axis("off")
-
-        if save_path:
-            if not os.path.exists(save_path):
-                os.makedirs(save_path)
-            plt.savefig(os.path.join(save_path, f'examples_{idx}.png'))
-
-
-def plot_knn_examples_for_uploaded_image(embeddings, filenames, path_to_test_data, query_filename, n_neighbors=3,
-                                         save_path=None):
+def plot_knn_examples_for_uploaded_image(embeddings, filenames, path_to_test_data,
+                                         query_filename, n_neighbors=3,
+                                         save_dir=None):
     """
     Plots nearest neighbors of a specific image given its filename
 
@@ -190,20 +169,31 @@ def plot_knn_examples_for_uploaded_image(embeddings, filenames, path_to_test_dat
     :param str path_to_test_data: path to test data
     :param int query_filename: specified image file name
     :param int n_neighbors: number of nearest neighbors to plot
-    :param str save_path: path to save image with nearest images
+    :param str save_dir: path to save image with nearest images
     """
-    query_idx = filenames.index(query_filename)  # Get the index of the query image
-    query_embedding = embeddings[query_idx]  # Get the embedding of the query image
+    # Get the index of the query image
+    query_idx = filenames.index(str(query_filename))
+    # Get the embedding of the query image
+    query_embedding = embeddings[query_idx]
+
     nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)
-    distances, indices = nbrs.kneighbors([query_embedding])  # Compute neighbors for the query image
+
+    # Compute neighbors for the query image
+    distances, indices = nbrs.kneighbors([query_embedding])
     fig = plt.figure()
+
     for plot_x_offset, neighbor_idx in enumerate(indices[0]):
         ax = fig.add_subplot(1, n_neighbors, plot_x_offset + 1)
-        fname = os.path.join(path_to_test_data, filenames[neighbor_idx])
+        fname = Path(path_to_test_data).joinpath(filenames[neighbor_idx])
         plt.imshow(get_image_as_np_array(fname))
         ax.set_title(f'd={distances[0][plot_x_offset]:.3f}')
         plt.axis('off')
-    if save_path:
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-        plt.savefig(os.path.join(save_path, f'nearest_neighbors_{query_filename}.png'))
+
+    if save_dir:
+        save_dir = Path(save_dir)
+        if not save_dir.exists():
+            save_dir.mkdir(exist_ok=True)
+        plt.savefig(save_dir.joinpath(f'nearest_neighbors_{query_filename}.png'))
+
+
+

@@ -4,6 +4,6 @@ path_to_train_mask: "mask/train"
 path_to_test_mask: "mask/test"
 
 path_to_checkpoint: "checkpoints"
-checkpoint_path: "checkpoints/epoch=74-step=4800.ckpt"
+checkpoint_path: "checkpoints/best_checkpoint.ckpt"
 
 plt_figures: "plt_figures"

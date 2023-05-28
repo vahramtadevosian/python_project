@@ -62,7 +62,8 @@ elif app_mode == 'Find Similar Image':
         dataset_test = LightlyDatasetWithMasks(
             input_dir=general_dict['path_to_test_data'],
             mask_dir=general_dict['path_to_test_mask'],
-            transform=test_transforms
+            transform=test_transforms,
+            test_mode=True
         )
     else:
         print('not using')

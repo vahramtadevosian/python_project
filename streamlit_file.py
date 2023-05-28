@@ -1,30 +1,38 @@
-import streamlit as st
-# import splitfolders
-import mediapipe as mp
 import torch
 import argparse
-from tools.dataset import LightlyDatasetWithMasks
-from lightly.data import LightlyDataset
-from utils.helper_functions import yaml_loader, generate_embeddings, plot_knn_examples, create_test_transforms, \
-    plot_knn_examples_for_uploaded_image
-from tools.simple_clr import SimCLRModel
+import streamlit as st
+import mediapipe as mp
+
 from PIL import Image as PilImage
 from sklearn.neighbors import NearestNeighbors
-import numpy as np
-import os
-import matplotlib.pyplot as plt
+from lightly.data import LightlyDataset
+
+from tools.dataset import LightlyDatasetWithMasks
+from tools.simple_clr import SimCLRModel
+from utils.helper_functions import yaml_loader, generate_embeddings, create_test_transforms, \
+    plot_knn_examples_for_uploaded_image
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--input_size', type=int, help='Input size of image', default=128)
+parser.add_argument('--batch_size', type=int, help='Batch size', default=128)
+parser.add_argument('--num_workers', type=int, help='Number of workers', default=8)
+parser.add_argument('--use_masks', type=bool, help='Whether to use segmentation masks', default=True)
+args = parser.parse_args()
+
+general_dict = yaml_loader('configs/general.yaml')
 
 st.set_option('deprecation.showPyplotGlobalUse', False)  # Hide the warning
 
 mp_drawing = mp.solutions.drawing_utils
 
-st.title('Face Recognition App')
+st.title('Person identification App')
 
 st.sidebar.title('Find your photos')
 st.sidebar.subheader('Welcome!')
 
 app_mode = st.sidebar.selectbox('Choose the App mode',
-                                ['About App', 'Run Image'])
+                                ['About App', 'Find Similar Image'])
 
 if app_mode == "About App":
     st.markdown('In this application we are using **SimCLR** for **Person Identification**   \n'
@@ -37,54 +45,51 @@ if app_mode == "About App":
                 'Vahram Tadevosyan')
 
 
-elif app_mode == 'Run Image':
+elif app_mode == 'Find Similar Image':
     uploaded_image = st.file_uploader("Please upload your image", type=["jpg", "png"])
 
     num_neighbors = st.sidebar.slider('Number of nearest neighbors', min_value=1, max_value=5, value=3)
 
-    config = yaml_loader('configs/general.yaml')
-
     # Load the SimCLR model
-    model = SimCLRModel.load_from_checkpoint(config['checkpoint_path'])
+    model = SimCLRModel.load_from_checkpoint(general_dict['checkpoint_path'])
     model.eval()
 
     # Load the test dataset
-    test_transforms = create_test_transforms(resolution=128)
+    test_transforms = create_test_transforms(resolution=args.input_size)
 
-    dataset_test = LightlyDatasetWithMasks(
-        input_dir=config['path_to_test_data'],
-        transform=test_transforms
-    )
-    # Uncomment to use dataset without segmentation masks
-    # dataset_test = LightlyDataset(
-    #     input_dir=config['path_to_test_data'],
-    #     transform=test_transforms
-    # )
+    if args.use_masks:
+        print('using')
+        dataset_test = LightlyDatasetWithMasks(
+            input_dir=general_dict['path_to_test_data'],
+            mask_dir=general_dict['path_to_test_mask'],
+            transform=test_transforms
+        )
+    else:
+        print('not using')
+        dataset_test = LightlyDataset(
+            input_dir=general_dict['path_to_test_data'],
+            transform=test_transforms
+        )
 
     dataloader_test = torch.utils.data.DataLoader(
         dataset_test,
-        batch_size=128,
+        batch_size=args.batch_size,
         shuffle=False,
         drop_last=False,
-        num_workers=8,
+        num_workers=args.num_workers,
     )
 
     # Generate embeddings for the test dataset
     embeddings, filenames = generate_embeddings(model.cpu(), dataloader_test)
 
-    general_dict = yaml_loader('configs/general.yaml')
-
     if uploaded_image is not None:
         query_filename = uploaded_image.name
         input_image = PilImage.open(uploaded_image)
-        input_image = input_image.resize((300, 300))
+        input_image = input_image.resize((args.input_size, args.input_size))
 
         model = SimCLRModel.load_from_checkpoint(general_dict['checkpoint_path'])
         model.eval()
-        # emb_uploaded = model.backbone(input_image).flatten(start_dim=1)
         embeddings, filenames = generate_embeddings(model.cpu(), dataloader_test)
-        # plot_knn_examples2(embeddings, filenames, general_dict['path_to_test_data'], query_filename, n_neighbors=3,
-        #                    save_path=general_dict['plt_figures'])
 
         st.image(input_image, caption="Uploaded Image", use_column_width=False)
 

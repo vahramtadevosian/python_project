@@ -1,7 +1,6 @@
 path_to_train_data: "data/train"
 path_to_test_data: "data/test"
-path_to_train_mask: "mask/train"
-path_to_test_mask: "mask/test"
+path_to_mask: "masks"
 
 path_to_checkpoint: "checkpoints"
 checkpoint_path: "checkpoints/best_checkpoint.ckpt"

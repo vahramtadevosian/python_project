@@ -15,11 +15,11 @@ from tools.simple_clr import SimCLRModel
 parser = argparse.ArgumentParser()
 parser.add_argument('--input_size', type=int, help='Input size of image', default=128)
 parser.add_argument('--save_top_k', type=int, help='Number of best checkpoints to save', default=3)
-parser.add_argument('--batch_size', type=int, help='Batch size', default=128)
+parser.add_argument('--batch_size', type=int, help='Batch size', default=16)
 parser.add_argument('--num_workers', type=int, help='Number of workers', default=8)
 parser.add_argument('--max_epochs', type=int, help='Number of epochs to train', default=100)
 parser.add_argument('--log_steps', type=int, help='Length of logging interval', default=5)
-parser.add_argument('--use_masks', action='store_true', help='Whether to use segmentation masks')
+parser.add_argument('--use_masks', action='store_true', default=True, help='Whether to use segmentation masks')
 args = parser.parse_args()
 
 general_dict = yaml_loader('configs/general.yaml')
@@ -30,7 +30,7 @@ if args.use_masks:
     print('using')
     dataset_train_simclr = LightlyDatasetWithMasks(
         input_dir=general_dict['path_to_train_data'],
-        mask_dir=general_dict['path_to_train_mask'],
+        mask_dir=general_dict['path_to_mask'],
         transform=create_train_transforms(resolution=args.input_size)
     )
 else:

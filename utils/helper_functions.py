@@ -196,4 +196,41 @@ def plot_knn_examples_for_uploaded_image(embeddings, filenames, path_to_test_dat
         plt.savefig(save_dir.joinpath(f'nearest_neighbors_{query_filename}.png'))
 
 
+@st.cache
+def infer(args: argparse.PARSER, **kwargs):
+    """
+    Infer embeddings and filenames of the similar faces for streamlit demo
 
+    :args Arguments used for demo
+    :kwargs General config arguments used in the codes (see configs/general.yaml)
+    """
+    # Load the test dataset
+    test_transforms = create_test_transforms(resolution=args.input_size)
+
+    if args.use_masks:
+        logger.info('Using the binary masks generated beforehand.')
+        dataset_test = LightlyDatasetWithMasks(
+            input_dir=kwargs['path_to_test_data'],
+            mask_dir=kwargs['path_to_mask'],
+            transform=test_transforms,
+            test_mode=True
+        )
+    else:
+        logger.info('Not using the binary masks.')
+        dataset_test = LightlyDataset(
+            input_dir=kwargs['path_to_test_data'],
+            transform=test_transforms
+        )
+
+    dataloader_test = DataLoader(
+        dataset_test,
+        batch_size=args.batch_size,
+        shuffle=False,
+        drop_last=False,
+        num_workers=args.num_workers,
+    )
+
+    model = SimCLRModel.load_from_checkpoint(kwargs['checkpoint_path'])
+    model.eval()
+    embeddings, filenames = generate_embeddings(model.cpu(), dataloader_test)
+    return embeddings, filenames

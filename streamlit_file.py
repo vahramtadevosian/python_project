@@ -14,8 +14,6 @@ parser.add_argument('--batch_size', type=int,
                     help='Batch size', default=128)
 parser.add_argument('--num_workers', type=int,
                     help='Number of workers', default=8)
-parser.add_argument('--use_masks', type=bool,
-                    help='Whether to use segmentation masks', default=True)
 args = parser.parse_args()
 
 general_dict = yaml_loader('configs/general.yaml')
@@ -49,12 +47,13 @@ elif app_mode == 'Find Similar Image':
         sys.exit()  # TODO retry
 
     num_neighbors = st.sidebar.slider('Number of nearest neighbors', min_value=1, max_value=10, value=3)
+    use_masks = st.sidebar.checkbox("Use binary masks")
 
     query_filename = uploaded_image.name
     input_image = PilImage.open(uploaded_image)
     input_image = input_image.resize((args.input_size, args.input_size))
 
-    embeddings, filenames = infer(args, **general_dict)
+    embeddings, filenames = infer(use_masks, args, **general_dict)
 
     st.image(input_image, caption="Uploaded Image", use_column_width=False)
 

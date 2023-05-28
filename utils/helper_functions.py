@@ -197,7 +197,7 @@ def plot_knn_examples_for_uploaded_image(embeddings, filenames, path_to_test_dat
 
 
 @st.cache
-def infer(args: argparse.PARSER, **kwargs):
+def infer(use_masks, args: argparse.PARSER, **kwargs):
     """
     Infer embeddings and filenames of the similar faces for streamlit demo
 
@@ -207,7 +207,7 @@ def infer(args: argparse.PARSER, **kwargs):
     # Load the test dataset
     test_transforms = create_test_transforms(resolution=args.input_size)
 
-    if args.use_masks:
+    if use_masks:
         logger.info('Using the binary masks generated beforehand.')
         dataset_test = LightlyDatasetWithMasks(
             input_dir=kwargs['path_to_test_data'],

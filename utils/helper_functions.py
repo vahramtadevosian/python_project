@@ -1,15 +1,16 @@
+import yaml
+import torch
 import argparse
-from pathlib import Path
-from typing import Union
-
-import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
-import torch
-import yaml
+import matplotlib.pyplot as plt
+
+from pathlib import Path
+from typing import Union
 from PIL import Image
-from lightly.data import LightlyDataset, collate
 from loguru import logger
+from tqdm import tqdm
+from lightly.data import LightlyDataset, collate
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import normalize
 from torch.utils.data import DataLoader
@@ -17,7 +18,6 @@ from torchvision import transforms
 
 from tools.dataset import LightlyDatasetWithMasks
 from tools.simple_clr import SimCLRModel
-from tqdm import tqdm
 
 
 def yaml_loader(yaml_file):

@@ -1,11 +1,11 @@
-import argparse
 import sys
-
+import argparse
+import torch
 import mediapipe as mp
 import streamlit as st
-import torch
-from PIL import Image as PilImage
 import torchvision.transforms as transforms
+
+from PIL import Image as PilImage
 
 from tools.simple_clr import SimCLRModel
 from utils.helper_functions import yaml_loader, \
@@ -13,7 +13,7 @@ from utils.helper_functions import yaml_loader, \
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input_size', type=int,
-                    help='Input size of image', default=256)
+                    help='Input size of image', default=128)
 parser.add_argument('--batch_size', type=int,
                     help='Batch size', default=128)
 parser.add_argument('--num_workers', type=int,
@@ -46,12 +46,12 @@ if app_mode == "About App":
 
 
 elif app_mode == 'Find Similar Image':
+    num_neighbors = st.sidebar.slider('Number of nearest neighbors', min_value=1, max_value=5, value=3)
+    use_masks = st.sidebar.checkbox("Use binary masks")
+
     uploaded_image = st.file_uploader("Please upload your image", type=["jpg", "png"])
     if uploaded_image is None:
         sys.exit()
-
-    num_neighbors = st.sidebar.slider('Number of nearest neighbors', min_value=1, max_value=5, value=3)
-    use_masks = st.sidebar.checkbox("Use binary masks")
 
     input_image = PilImage.open(uploaded_image)
     input_image = input_image.resize((args.input_size,

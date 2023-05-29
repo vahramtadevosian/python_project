@@ -14,12 +14,12 @@ parser.add_argument('--num_workers', type=int,
                     help='Number of workers', default=8)
 args = parser.parse_args()
 
-general_dict = yaml_loader('configs/general.yaml')
+general_dict = yaml_loader('../configs/general.yaml')
 
 
 if __name__ == '__main__':
     for use_masks in [True, False]:
-        folder = Path('embeddings').joinpath(f'masked_{int(use_masks)}')
+        folder = Path('../embeddings').joinpath(f'masked_{int(use_masks)}')
         folder.mkdir(exist_ok=True)
 
         embeddings, filenames = infer(use_masks, args, **general_dict)

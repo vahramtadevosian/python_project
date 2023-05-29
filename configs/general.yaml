@@ -1,8 +1,9 @@
-path_to_train_data: "data/train"
-path_to_test_data: "data/test"
-path_to_mask: "masks"
+#path_to_data: data/train
+path_to_data: /Users/mariam/Desktop/CelebAMask-HQ/CelebA-HQ-img
+path_to_mask: masks
+embeddings_path: embeddings
+  
+path_to_checkpoint: checkpoints
+checkpoint_path: checkpoints/best_checkpoint.ckpt
 
-path_to_checkpoint: "checkpoints"
-checkpoint_path: "checkpoints/best_checkpoint.ckpt"
-
-plt_figures: "plt_figures"
+plt_figures: plt_figures

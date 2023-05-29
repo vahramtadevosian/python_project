@@ -6,3 +6,4 @@ plt_figures/
 .idea/
 logs/
 venv/
+**.png

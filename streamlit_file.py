@@ -3,9 +3,13 @@ import sys
 
 import mediapipe as mp
 import streamlit as st
+import torch
 from PIL import Image as PilImage
+import torchvision.transforms as transforms
+
+from tools.simple_clr import SimCLRModel
 from utils.helper_functions import yaml_loader, \
-    plot_knn_examples_for_uploaded_image, infer
+    plot_knn_examples_for_uploaded_image, load_embeddings_filenames
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input_size', type=int,
@@ -50,13 +54,24 @@ elif app_mode == 'Find Similar Image':
     use_masks = st.sidebar.checkbox("Use binary masks")
 
     input_image = PilImage.open(uploaded_image)
-    input_image = input_image.resize((args.input_size, args.input_size))
+    input_image = input_image.resize((args.input_size,
+                                      int(input_image.size[1] / input_image.size[0] * args.input_size)))
     st.image(input_image, caption="Uploaded Image", use_column_width=False)
 
-    embeddings, filenames = infer(use_masks, args, **general_dict)
+    transform = transforms.Compose([transforms.PILToTensor()])
+    image_arr = transform(input_image).unsqueeze(0).float().cpu()
 
-    # Plot and display the nearest neighbor images
-    fig = plot_knn_examples_for_uploaded_image(embeddings, filenames, general_dict['path_to_test_data'],
-                                               uploaded_image.name, n_neighbors=num_neighbors,
-                                               save_dir=general_dict['plt_figures'])
-    st.pyplot(fig)
+    embeddings, filenames = load_embeddings_filenames(use_masks, **general_dict)
+
+    with torch.no_grad():
+        model = SimCLRModel.load_from_checkpoint(general_dict['checkpoint_path'])
+        model.eval()
+        model.cpu()
+        query_embedding = model.backbone(image_arr).flatten(start_dim=1)
+
+        # Plot and display the nearest neighbor images
+        fig = plot_knn_examples_for_uploaded_image(embeddings=embeddings, filenames=filenames,
+                                                   path_to_data=general_dict['path_to_data'],
+                                                   query_filename=uploaded_image.name, n_neighbors=num_neighbors,
+                                                   save_dir=general_dict['plt_figures'], query_embedding=query_embedding)
+        st.pyplot(fig)

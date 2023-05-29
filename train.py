@@ -29,14 +29,14 @@ collate_fn = SimCLRCollateFunction(input_size=args.input_size, vf_prob=0.5, rr_p
 if args.use_masks:
     print('using')
     dataset_train_simclr = LightlyDatasetWithMasks(
-        input_dir=general_dict['path_to_train_data'],
+        input_dir=general_dict['path_to_data'],
         mask_dir=general_dict['path_to_mask'],
         transform=create_train_transforms(resolution=args.input_size)
     )
 else:
     print('not using')
     dataset_train_simclr = LightlyDataset(
-        input_dir=general_dict['path_to_train_data'],
+        input_dir=general_dict['path_to_data'],
         transform=create_train_transforms(resolution=args.input_size)
     )
 

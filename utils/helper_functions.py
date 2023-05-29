@@ -17,6 +17,7 @@ from torchvision import transforms
 
 from tools.dataset import LightlyDatasetWithMasks
 from tools.simple_clr import SimCLRModel
+from tqdm import tqdm
 
 
 def yaml_loader(yaml_file):
@@ -46,7 +47,7 @@ def generate_embeddings(model, dataloader):
     embeddings = []
     filenames = []
     with torch.no_grad():
-        for img, label, fnames in dataloader:
+        for img, label, fnames in tqdm(dataloader):
             img = img.to(model.device)
             emb = model.backbone(img).flatten(start_dim=1)
             embeddings.append(emb)
@@ -158,7 +159,7 @@ def create_test_transforms(
     return transforms.Compose(data_transforms)
 
 
-def plot_knn_examples_for_uploaded_image(embeddings, filenames, path_to_test_data,
+def plot_knn_examples_for_uploaded_image(embeddings, filenames, query_embedding, path_to_data,
                                          query_filename, n_neighbors=3,
                                          save_dir=None):
     """
@@ -166,25 +167,21 @@ def plot_knn_examples_for_uploaded_image(embeddings, filenames, path_to_test_dat
 
     :param np.array embeddings: embeddings of images
     :param str filenames: file names of images
-    :param str path_to_test_data: path to test data
+    :param str path_to_data: path to test data
     :param int query_filename: specified image file name
     :param int n_neighbors: number of nearest neighbors to plot
     :param str save_dir: path to save image with nearest images
     """
-    # Get the index of the query image
-    query_idx = filenames.index(str(query_filename))
-    # Get the embedding of the query image
-    query_embedding = embeddings[query_idx]
 
     nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)
 
     # Compute neighbors for the query image
-    distances, indices = nbrs.kneighbors([query_embedding])
+    distances, indices = nbrs.kneighbors(query_embedding.numpy())
     fig = plt.figure()
 
     for plot_x_offset, neighbor_idx in enumerate(indices[0]):
         ax = fig.add_subplot(1, n_neighbors, plot_x_offset + 1)
-        fname = Path(path_to_test_data).joinpath(filenames[neighbor_idx])
+        fname = Path(path_to_data).joinpath(filenames[neighbor_idx])
         plt.imshow(get_image_as_np_array(fname))
         ax.set_title(f'd={distances[0][plot_x_offset]:.3f}')
         plt.axis('off')
@@ -196,7 +193,6 @@ def plot_knn_examples_for_uploaded_image(embeddings, filenames, path_to_test_dat
         plt.savefig(save_dir.joinpath(f'nearest_neighbors_{query_filename}.png'))
 
 
-@st.cache_resource()
 def infer(use_masks, _args: argparse.PARSER, **kwargs):
     """
     Infer embeddings and filenames of the similar faces for streamlit demo
@@ -210,7 +206,7 @@ def infer(use_masks, _args: argparse.PARSER, **kwargs):
     if use_masks:
         logger.info('Using the binary masks generated beforehand.')
         dataset_test = LightlyDatasetWithMasks(
-            input_dir=kwargs['path_to_test_data'],
+            input_dir=kwargs['path_to_data'],
             mask_dir=kwargs['path_to_mask'],
             transform=test_transforms,
             test_mode=True
@@ -218,7 +214,7 @@ def infer(use_masks, _args: argparse.PARSER, **kwargs):
     else:
         logger.info('Not using the binary masks.')
         dataset_test = LightlyDataset(
-            input_dir=kwargs['path_to_test_data'],
+            input_dir=kwargs['path_to_data'],
             transform=test_transforms
         )
 
@@ -233,4 +229,17 @@ def infer(use_masks, _args: argparse.PARSER, **kwargs):
     model = SimCLRModel.load_from_checkpoint(kwargs['checkpoint_path'])
     model.eval()
     embeddings, filenames = generate_embeddings(model.cpu(), dataloader_test)
+    return embeddings, filenames
+
+
+@st.cache_resource()
+def load_embeddings_filenames(masking: bool, **kwargs):
+    embeddings_folder = Path(kwargs['embeddings_path']).joinpath(f'masked_{int(masking)}')
+    embeddings = torch.load(embeddings_folder.joinpath('embeddings.pt'))
+
+    with open(embeddings_folder.joinpath('filenames.txt'), 'r') as file:
+        filenames = file.read().split('\n')
+
+    names = ...
+
     return embeddings, filenames

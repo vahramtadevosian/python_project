@@ -6,6 +6,7 @@ from PIL import Image
 from lightly.data import LightlyDataset
 from torchvision import transforms
 
+
 class LightlyDatasetWithMasks(LightlyDataset):
     """
     A custom dataset class to add functionality to load

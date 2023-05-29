@@ -176,7 +176,7 @@ def plot_knn_examples_for_uploaded_image(embeddings, filenames, query_embedding,
     nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)
 
     # Compute neighbors for the query image
-    distances, indices = nbrs.kneighbors(query_embedding.numpy())
+    distances, indices = nbrs.kneighbors(query_embedding)
     fig = plt.figure()
 
     for plot_x_offset, neighbor_idx in enumerate(indices[0]):
@@ -197,8 +197,9 @@ def infer(use_masks, _args: argparse.PARSER, **kwargs):
     """
     Infer embeddings and filenames of the similar faces for streamlit demo
 
-    :args Arguments used for demo
-    :kwargs General config arguments used in the codes (see configs/general.yaml)
+    :param bool use_masks: Binary indicator for using attention masks
+    :param argparse.PARSER _args: Arguments used for demo
+    :param dict kwargs: General config arguments used in the codes (see configs/general.yaml)
     """
     # Load the test dataset
     test_transforms = create_test_transforms(resolution=_args.input_size)
@@ -234,6 +235,12 @@ def infer(use_masks, _args: argparse.PARSER, **kwargs):
 
 @st.cache_resource()
 def load_embeddings_filenames(masking: bool, **kwargs):
+    '''
+    Retrieve embeddings and filenames
+
+    :param bool masking: Binary indicator for using attention masks
+    :param dict kwargs: keyword arguments
+    '''
     embeddings_folder = Path(kwargs['embeddings_path']).joinpath(f'masked_{int(masking)}')
     embeddings = torch.load(embeddings_folder.joinpath('embeddings.pt'))
 

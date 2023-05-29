@@ -1,15 +1,15 @@
-import sys
 import argparse
-import torch
+import sys
+
 import mediapipe as mp
 import streamlit as st
-import torchvision.transforms as transforms
-
+import torch
 from PIL import Image as PilImage
+from sklearn.preprocessing import normalize
 
 from tools.simple_clr import SimCLRModel
 from utils.helper_functions import yaml_loader, \
-    plot_knn_examples_for_uploaded_image, load_embeddings_filenames
+    plot_knn_examples_for_uploaded_image, load_embeddings_filenames, create_test_transforms
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input_size', type=int,
@@ -58,16 +58,16 @@ elif app_mode == 'Find Similar Image':
                                       int(input_image.size[1] / input_image.size[0] * args.input_size)))
     st.image(input_image, caption="Uploaded Image", use_column_width=False)
 
-    transform = transforms.Compose([transforms.PILToTensor()])
-    image_arr = transform(input_image).unsqueeze(0).float().cpu()
+    transform = create_test_transforms(resolution=args.input_size)
+    image_arr = transform(input_image).unsqueeze(0)
 
     embeddings, filenames = load_embeddings_filenames(use_masks, **general_dict)
 
     with torch.no_grad():
         model = SimCLRModel.load_from_checkpoint(general_dict['checkpoint_path'])
         model.eval()
-        model.cpu()
         query_embedding = model.backbone(image_arr).flatten(start_dim=1)
+        query_embedding = normalize([query_embedding.squeeze().numpy()])
 
         # Plot and display the nearest neighbor images
         fig = plot_knn_examples_for_uploaded_image(embeddings=embeddings, filenames=filenames,

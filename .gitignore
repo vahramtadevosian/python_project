@@ -8,3 +8,7 @@ demo_pics/
 masks/
 data/
 **.png
+**.jpg
+**.pt
+**.ckpt
+**.txt

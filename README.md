@@ -50,7 +50,11 @@ python train.py --use_masks
 ## Inference with Streamlit
 
 1. To test the trained model make sure that the best checkpoint `best_checkpoint.ckpt` is put in the `./checkpoints` directory.
-2. Using streamlit, run:
+2. Before the demonstration with streamlit you'll need to generate embeddings for the  images in order to optimize the workflow of inference.
+```shell
+python utils/save_embeddings.py
+```
+3. Using streamlit, run:
 ```shell
 streamlit run streamlit_file.py
 ```

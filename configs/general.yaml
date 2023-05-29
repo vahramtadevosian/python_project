@@ -4,6 +4,6 @@ path_to_mask: masks
 embeddings_path: embeddings
   
 path_to_checkpoint: checkpoints
-checkpoint_path: checkpoints/best_checkpoint.ckpt
+checkpoint_path: checkpoints/simclr_model_train loss ssl=0.000_epoch=42.ckpt
 
 plt_figures: plt_figures

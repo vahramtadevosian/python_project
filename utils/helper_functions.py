@@ -247,6 +247,4 @@ def load_embeddings_filenames(masking: bool, **kwargs):
     with open(embeddings_folder.joinpath('filenames.txt'), 'r') as file:
         filenames = file.read().split('\n')
 
-    names = ...
-
     return embeddings, filenames

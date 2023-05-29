@@ -1,9 +1,10 @@
-data/images/
-data/train/
-data/test/
 lightning_logs/
 plt_figures/
 .idea/
 logs/
 venv/
+embeddings/
+demo_pics/
+masks/
+data/
 **.png
